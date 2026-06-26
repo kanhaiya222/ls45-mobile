@@ -1,7 +1,10 @@
 import 'package:ls45_mobile/core/network/api_exception.dart';
+import 'package:ls45_mobile/core/network/api_response.dart';
 import 'package:ls45_mobile/core/storage/key_value_store.dart';
 import 'package:ls45_mobile/features/auth/data/auth_repository.dart';
 import 'package:ls45_mobile/features/auth/models/auth_models.dart';
+import 'package:ls45_mobile/features/catalog/data/catalog_repository.dart';
+import 'package:ls45_mobile/features/catalog/models/catalog_models.dart';
 
 /// In-memory [KeyValueStore] for tests (no platform channel).
 class InMemoryKeyValueStore implements KeyValueStore {
@@ -48,21 +51,67 @@ class FakeAuthRepository implements AuthRepository {
     required String lastName,
     String? phoneNumber,
   }) async {
-    final user = AuthUser(
-      publicId: 'u2',
-      email: email,
-      firstName: firstName,
-      lastName: lastName,
-    );
+    final user = AuthUser(publicId: 'u2', email: email, firstName: firstName, lastName: lastName);
     session = user;
     return user;
   }
 
   @override
-  Future<void> logout() async {
-    session = null;
-  }
+  Future<void> logout() async => session = null;
 
   @override
   Future<AuthUser?> restoreSession() async => session;
+}
+
+PackageSummary fakePackage(String name) => PackageSummary(
+      publicId: name,
+      name: name,
+      slug: name.toLowerCase().replaceAll(' ', '-'),
+      durationDays: 5,
+      durationNights: 4,
+      featured: false,
+      basePrice: 10000,
+    );
+
+/// Fake [CatalogRepository] backed by an in-memory list, with simple search + paging.
+class FakeCatalogRepository implements CatalogRepository {
+  FakeCatalogRepository({List<PackageSummary>? all, this.pageSize = 2}) : all = all ?? const [];
+
+  final List<PackageSummary> all;
+  final int pageSize;
+
+  @override
+  Future<PageResponse<PackageSummary>> listPackages({String? search, int page = 0}) async {
+    final filtered = search == null
+        ? all
+        : all.where((p) => p.name.toLowerCase().contains(search.toLowerCase())).toList();
+    final start = page * pageSize;
+    final slice = start >= filtered.length
+        ? <PackageSummary>[]
+        : filtered.sublist(start, (start + pageSize).clamp(0, filtered.length));
+    return PageResponse(
+      content: slice,
+      page: page,
+      size: pageSize,
+      totalElements: filtered.length,
+      totalPages: (filtered.length / pageSize).ceil(),
+      first: page == 0,
+      last: (start + pageSize) >= filtered.length,
+    );
+  }
+
+  @override
+  Future<List<Category>> listCategories() async => const [];
+
+  @override
+  Future<PackageDetail> packageBySlug(String slug) async => throw UnimplementedError();
+
+  @override
+  Future<List<DepartureSummary>> availability(String packagePublicId) async => const [];
+
+  @override
+  Future<Itinerary?> itinerary(String packagePublicId) async => null;
+
+  @override
+  Future<List<Faq>> faqs(String packagePublicId) async => const [];
 }
