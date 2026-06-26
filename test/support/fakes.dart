@@ -73,12 +73,33 @@ PackageSummary fakePackage(String name) => PackageSummary(
       basePrice: 10000,
     );
 
+PackageDetail fakeDetail(String name) => PackageDetail(
+      publicId: '$name-id',
+      name: name,
+      slug: name.toLowerCase().replaceAll(' ', '-'),
+      durationDays: 7,
+      durationNights: 6,
+      basePrice: 45000,
+      highlights: const ['Sunrise yoga', 'Meditation'],
+    );
+
 /// Fake [CatalogRepository] backed by an in-memory list, with simple search + paging.
 class FakeCatalogRepository implements CatalogRepository {
-  FakeCatalogRepository({List<PackageSummary>? all, this.pageSize = 2}) : all = all ?? const [];
+  FakeCatalogRepository({
+    List<PackageSummary>? all,
+    this.pageSize = 2,
+    this.detail,
+    this.departures = const [],
+    this.itin,
+    this.faqList = const [],
+  }) : all = all ?? const [];
 
   final List<PackageSummary> all;
   final int pageSize;
+  final PackageDetail? detail;
+  final List<DepartureSummary> departures;
+  final Itinerary? itin;
+  final List<Faq> faqList;
 
   @override
   Future<PageResponse<PackageSummary>> listPackages({String? search, int page = 0}) async {
@@ -104,14 +125,15 @@ class FakeCatalogRepository implements CatalogRepository {
   Future<List<Category>> listCategories() async => const [];
 
   @override
-  Future<PackageDetail> packageBySlug(String slug) async => throw UnimplementedError();
+  Future<PackageDetail> packageBySlug(String slug) async =>
+      detail ?? (throw UnimplementedError());
 
   @override
-  Future<List<DepartureSummary>> availability(String packagePublicId) async => const [];
+  Future<List<DepartureSummary>> availability(String packagePublicId) async => departures;
 
   @override
-  Future<Itinerary?> itinerary(String packagePublicId) async => null;
+  Future<Itinerary?> itinerary(String packagePublicId) async => itin;
 
   @override
-  Future<List<Faq>> faqs(String packagePublicId) async => const [];
+  Future<List<Faq>> faqs(String packagePublicId) async => faqList;
 }
