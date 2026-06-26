@@ -3,6 +3,10 @@ import 'package:ls45_mobile/core/network/api_response.dart';
 import 'package:ls45_mobile/core/storage/key_value_store.dart';
 import 'package:ls45_mobile/features/auth/data/auth_repository.dart';
 import 'package:ls45_mobile/features/auth/models/auth_models.dart';
+import 'package:ls45_mobile/features/booking/data/booking_repository.dart';
+import 'package:ls45_mobile/features/booking/data/traveller_repository.dart';
+import 'package:ls45_mobile/features/booking/models/booking_models.dart';
+import 'package:ls45_mobile/features/booking/models/traveller_models.dart';
 import 'package:ls45_mobile/features/catalog/data/catalog_repository.dart';
 import 'package:ls45_mobile/features/catalog/models/catalog_models.dart';
 
@@ -136,4 +140,63 @@ class FakeCatalogRepository implements CatalogRepository {
 
   @override
   Future<List<Faq>> faqs(String packagePublicId) async => faqList;
+}
+
+/// Fake [BookingRepository] that records the draft + traveller-id calls.
+class FakeBookingRepository implements BookingRepository {
+  String? lastDraftId;
+  List<String>? lastTravellerIds;
+
+  @override
+  Future<BookingDraft> createDraft({
+    required String departurePublicId,
+    required OccupancyType occupancyType,
+    required int numTravellers,
+  }) async =>
+      BookingDraft(
+        publicId: 'draft-1',
+        status: 'DRAFT',
+        occupancyType: occupancyType.wire,
+        numTravellers: numTravellers,
+      );
+
+  @override
+  Future<BookingDraft> setTravellers(String draftPublicId, List<String> travellerPublicIds) async {
+    lastDraftId = draftPublicId;
+    lastTravellerIds = travellerPublicIds;
+    return BookingDraft(
+      publicId: draftPublicId,
+      status: 'DRAFT',
+      numTravellers: travellerPublicIds.length,
+    );
+  }
+}
+
+/// Fake [TravellerRepository] that mints sequential ids for created travellers.
+class FakeTravellerRepository implements TravellerRepository {
+  int _seq = 0;
+  final List<Traveller> created = [];
+
+  @override
+  Future<List<Traveller>> listMine() async => const [];
+
+  @override
+  Future<Traveller> create({
+    required String firstName,
+    required String lastName,
+    String? email,
+    String? phone,
+    String? dateOfBirth,
+    String? gender,
+    String? nationality,
+  }) async {
+    final t = Traveller(
+      publicId: 'trav-${++_seq}',
+      firstName: firstName,
+      lastName: lastName,
+      email: email,
+    );
+    created.add(t);
+    return t;
+  }
 }

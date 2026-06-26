@@ -1,5 +1,52 @@
 import '../../../core/json/json_utils.dart';
 
+/// Occupancy options (mirrors com.ls45...departure.OccupancyType).
+enum OccupancyType {
+  single('SINGLE', 'Single'),
+  doubleSharing('DOUBLE_SHARING', 'Double sharing'),
+  tripleSharing('TRIPLE_SHARING', 'Triple sharing'),
+  quadSharing('QUAD_SHARING', 'Quad sharing');
+
+  const OccupancyType(this.wire, this.label);
+
+  final String wire;
+  final String label;
+}
+
+/// Mirrors BookingDraftResponse (POST /api/v1/booking-drafts).
+class BookingDraft {
+  const BookingDraft({
+    required this.publicId,
+    required this.status,
+    this.step = 1,
+    this.occupancyType,
+    this.numTravellers = 1,
+    this.totalPrice,
+    this.currencyCode,
+    this.expiresAt,
+  });
+
+  final String publicId;
+  final String status;
+  final int step;
+  final String? occupancyType;
+  final int numTravellers;
+  final double? totalPrice;
+  final String? currencyCode;
+  final String? expiresAt;
+
+  factory BookingDraft.fromJson(Map<String, dynamic> json) => BookingDraft(
+        publicId: asString(json['publicId']),
+        status: asString(json['status']),
+        step: asInt(json['step'], 1),
+        occupancyType: asStringOrNull(json['occupancyType']),
+        numTravellers: asInt(json['numTravellers'], 1),
+        totalPrice: asDoubleOrNull(json['totalPrice']),
+        currencyCode: asStringOrNull(json['currencyCode']),
+        expiresAt: asStringOrNull(json['expiresAt']),
+      );
+}
+
 /// Mirrors BookingItemResponse.
 class BookingItem {
   const BookingItem({

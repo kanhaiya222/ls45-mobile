@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/network/api_exception.dart';
 import '../models/catalog_models.dart';
@@ -206,6 +207,8 @@ class _Departures extends StatelessWidget {
                   ? Text('from ₹${dep.priceFrom!.round()}',
                       style: const TextStyle(fontWeight: FontWeight.bold))
                   : null,
+              // Only OPEN departures can be booked; others are display-only.
+              onTap: dep.status == 'OPEN' ? () => context.push('/book/${dep.publicId}') : null,
             ),
           ),
       ],
