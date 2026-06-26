@@ -47,6 +47,65 @@ class BookingDraft {
       );
 }
 
+/// Mirrors BookingPriceSnapshotResponse (GET /api/v1/booking-drafts/{id}/review).
+class BookingPriceSnapshot {
+  const BookingPriceSnapshot({
+    required this.publicId,
+    this.basePrice,
+    this.addonTotal,
+    this.couponDiscount,
+    this.taxAmount,
+    this.totalPrice,
+    this.currencyCode,
+    this.expiresAt,
+  });
+
+  final String publicId;
+  final double? basePrice;
+  final double? addonTotal;
+  final double? couponDiscount;
+  final double? taxAmount;
+  final double? totalPrice;
+  final String? currencyCode;
+  final String? expiresAt;
+
+  factory BookingPriceSnapshot.fromJson(Map<String, dynamic> json) => BookingPriceSnapshot(
+        publicId: asString(json['publicId']),
+        basePrice: asDoubleOrNull(json['basePrice']),
+        addonTotal: asDoubleOrNull(json['addonTotal']),
+        couponDiscount: asDoubleOrNull(json['couponDiscount']),
+        taxAmount: asDoubleOrNull(json['taxAmount']),
+        totalPrice: asDoubleOrNull(json['totalPrice']),
+        currencyCode: asStringOrNull(json['currencyCode']),
+        expiresAt: asStringOrNull(json['expiresAt']),
+      );
+}
+
+/// Mirrors PaymentInitiationResponse (POST /api/v1/bookings/{id}/payments/initiate).
+class PaymentInitiation {
+  const PaymentInitiation({
+    required this.paymentPublicId,
+    required this.razorpayOrderId,
+    required this.razorpayKeyId,
+    required this.amount,
+    required this.currencyCode,
+  });
+
+  final String paymentPublicId;
+  final String razorpayOrderId;
+  final String razorpayKeyId;
+  final double amount;
+  final String currencyCode;
+
+  factory PaymentInitiation.fromJson(Map<String, dynamic> json) => PaymentInitiation(
+        paymentPublicId: asString(json['paymentPublicId']),
+        razorpayOrderId: asString(json['razorpayOrderId']),
+        razorpayKeyId: asString(json['razorpayKeyId']),
+        amount: asDoubleOrNull(json['amount']) ?? 0,
+        currencyCode: asString(json['currencyCode'], 'INR'),
+      );
+}
+
 /// Mirrors BookingItemResponse.
 class BookingItem {
   const BookingItem({

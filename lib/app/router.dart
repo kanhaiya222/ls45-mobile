@@ -6,6 +6,7 @@ import '../features/auth/state/auth_controller.dart';
 import '../features/auth/ui/login_screen.dart';
 import '../features/auth/ui/register_screen.dart';
 import '../features/booking/ui/booking_start_screen.dart';
+import '../features/booking/ui/checkout_screen.dart';
 import '../features/catalog/ui/catalog_list_screen.dart';
 import '../features/catalog/ui/package_detail_screen.dart';
 
@@ -44,14 +45,16 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, state) =>
             BookingStartScreen(departurePublicId: state.pathParameters['departureId']!),
       ),
-      // Real checkout (reserve + payment) lands in M.8; this keeps the booking flow navigable.
       GoRoute(
         path: '/checkout/:draftId',
-        builder: (_, state) => Scaffold(
-          appBar: AppBar(title: const Text('Checkout')),
-          body: Center(
-            child: Text('Checkout for draft ${state.pathParameters['draftId']} — payment in M.8'),
-          ),
+        builder: (_, state) => CheckoutScreen(draftId: state.pathParameters['draftId']!),
+      ),
+      // Real My Bookings screen lands in M.9; stub keeps the post-checkout nav working.
+      GoRoute(
+        path: '/account/bookings',
+        builder: (_, __) => Scaffold(
+          appBar: AppBar(title: const Text('Your bookings')),
+          body: const Center(child: Text('Your bookings appear here (M.9).')),
         ),
       ),
     ],

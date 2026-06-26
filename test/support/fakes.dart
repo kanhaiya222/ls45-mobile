@@ -170,6 +170,44 @@ class FakeBookingRepository implements BookingRepository {
       numTravellers: travellerPublicIds.length,
     );
   }
+
+  /// Toggle to exercise the configured-payment vs payment-disabled checkout paths.
+  bool paymentConfigured = false;
+
+  @override
+  Future<BookingPriceSnapshot> review(String draftPublicId) async => const BookingPriceSnapshot(
+        publicId: 'snap-1',
+        basePrice: 90000,
+        taxAmount: 4500,
+        totalPrice: 94500,
+        currencyCode: 'INR',
+      );
+
+  @override
+  Future<Booking> confirm(String draftPublicId, String priceSnapshotPublicId) async => const Booking(
+        publicId: 'bk-1',
+        bookingReference: 'LS45-0001',
+        status: 'PENDING_PAYMENT',
+        occupancyType: 'DOUBLE_SHARING',
+      );
+
+  @override
+  Future<PaymentInitiation> initiatePayment(String bookingPublicId) async {
+    if (!paymentConfigured) {
+      throw ApiException(
+        statusCode: 400,
+        errorCode: 'PAYMENT_NOT_CONFIGURED',
+        message: 'Payments not configured',
+      );
+    }
+    return const PaymentInitiation(
+      paymentPublicId: 'pay-1',
+      razorpayOrderId: 'order_1',
+      razorpayKeyId: 'rzp_test',
+      amount: 94500,
+      currencyCode: 'INR',
+    );
+  }
 }
 
 /// Fake [TravellerRepository] that mints sequential ids for created travellers.

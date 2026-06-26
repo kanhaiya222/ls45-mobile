@@ -15,6 +15,15 @@ abstract interface class BookingRepository {
   });
 
   Future<BookingDraft> setTravellers(String draftPublicId, List<String> travellerPublicIds);
+
+  /// Locks and returns the price snapshot for the draft.
+  Future<BookingPriceSnapshot> review(String draftPublicId);
+
+  /// Confirms the draft → a reserved booking (PENDING_PAYMENT).
+  Future<Booking> confirm(String draftPublicId, String priceSnapshotPublicId);
+
+  /// Starts payment; throws ApiException(errorCode: 'PAYMENT_NOT_CONFIGURED') when payments are off.
+  Future<PaymentInitiation> initiatePayment(String bookingPublicId);
 }
 
 class HttpBookingRepository implements BookingRepository {
@@ -48,6 +57,42 @@ class HttpBookingRepository implements BookingRepository {
         data: {'travellerPublicIds': travellerPublicIds},
       );
       return unwrap(res.data, (d) => BookingDraft.fromJson((d as Map).cast<String, dynamic>()));
+    } on DioException catch (e) {
+      throw ApiException.fromDio(e);
+    }
+  }
+
+  @override
+  Future<BookingPriceSnapshot> review(String draftPublicId) async {
+    try {
+      final res = await _dio.get<Map<String, dynamic>>('/booking-drafts/$draftPublicId/review');
+      return unwrap(
+          res.data, (d) => BookingPriceSnapshot.fromJson((d as Map).cast<String, dynamic>()));
+    } on DioException catch (e) {
+      throw ApiException.fromDio(e);
+    }
+  }
+
+  @override
+  Future<Booking> confirm(String draftPublicId, String priceSnapshotPublicId) async {
+    try {
+      final res = await _dio.post<Map<String, dynamic>>(
+        '/booking-drafts/$draftPublicId/confirm',
+        data: {'priceSnapshotPublicId': priceSnapshotPublicId},
+      );
+      return unwrap(res.data, (d) => Booking.fromJson((d as Map).cast<String, dynamic>()));
+    } on DioException catch (e) {
+      throw ApiException.fromDio(e);
+    }
+  }
+
+  @override
+  Future<PaymentInitiation> initiatePayment(String bookingPublicId) async {
+    try {
+      final res = await _dio.post<Map<String, dynamic>>(
+        '/bookings/$bookingPublicId/payments/initiate',
+      );
+      return unwrap(res.data, (d) => PaymentInitiation.fromJson((d as Map).cast<String, dynamic>()));
     } on DioException catch (e) {
       throw ApiException.fromDio(e);
     }
