@@ -5,8 +5,10 @@ import 'package:go_router/go_router.dart';
 import '../features/auth/state/auth_controller.dart';
 import '../features/auth/ui/login_screen.dart';
 import '../features/auth/ui/register_screen.dart';
+import '../features/booking/ui/booking_detail_screen.dart';
 import '../features/booking/ui/booking_start_screen.dart';
 import '../features/booking/ui/checkout_screen.dart';
+import '../features/booking/ui/my_bookings_screen.dart';
 import '../features/catalog/ui/catalog_list_screen.dart';
 import '../features/catalog/ui/package_detail_screen.dart';
 
@@ -49,13 +51,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/checkout/:draftId',
         builder: (_, state) => CheckoutScreen(draftId: state.pathParameters['draftId']!),
       ),
-      // Real My Bookings screen lands in M.9; stub keeps the post-checkout nav working.
+      GoRoute(path: '/account/bookings', builder: (_, __) => const MyBookingsScreen()),
       GoRoute(
-        path: '/account/bookings',
-        builder: (_, __) => Scaffold(
-          appBar: AppBar(title: const Text('Your bookings')),
-          body: const Center(child: Text('Your bookings appear here (M.9).')),
-        ),
+        path: '/account/bookings/:id',
+        builder: (_, state) => BookingDetailScreen(bookingId: state.pathParameters['id']!),
       ),
     ],
   );

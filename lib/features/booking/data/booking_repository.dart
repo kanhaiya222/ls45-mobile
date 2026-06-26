@@ -24,6 +24,11 @@ abstract interface class BookingRepository {
 
   /// Starts payment; throws ApiException(errorCode: 'PAYMENT_NOT_CONFIGURED') when payments are off.
   Future<PaymentInitiation> initiatePayment(String bookingPublicId);
+
+  /// The signed-in user's bookings (paged).
+  Future<PageResponse<Booking>> listMine({int page = 0});
+
+  Future<Booking> getByPublicId(String publicId);
 }
 
 class HttpBookingRepository implements BookingRepository {
@@ -93,6 +98,29 @@ class HttpBookingRepository implements BookingRepository {
         '/bookings/$bookingPublicId/payments/initiate',
       );
       return unwrap(res.data, (d) => PaymentInitiation.fromJson((d as Map).cast<String, dynamic>()));
+    } on DioException catch (e) {
+      throw ApiException.fromDio(e);
+    }
+  }
+
+  @override
+  Future<PageResponse<Booking>> listMine({int page = 0}) async {
+    try {
+      final res = await _dio.get<Map<String, dynamic>>('/bookings', queryParameters: {'page': page});
+      return unwrap(
+        res.data,
+        (d) => PageResponse.fromJson((d as Map).cast<String, dynamic>(), Booking.fromJson),
+      );
+    } on DioException catch (e) {
+      throw ApiException.fromDio(e);
+    }
+  }
+
+  @override
+  Future<Booking> getByPublicId(String publicId) async {
+    try {
+      final res = await _dio.get<Map<String, dynamic>>('/bookings/$publicId');
+      return unwrap(res.data, (d) => Booking.fromJson((d as Map).cast<String, dynamic>()));
     } on DioException catch (e) {
       throw ApiException.fromDio(e);
     }

@@ -32,6 +32,13 @@ class CheckoutService {
   /// When payments are disabled (PAYMENT_NOT_CONFIGURED) the booking stays reserved (pending).
   Future<CheckoutOutcome> reserveAndPay(String draftPublicId, String priceSnapshotPublicId) async {
     final booking = await _booking.confirm(draftPublicId, priceSnapshotPublicId);
+    return _startPayment(booking);
+  }
+
+  /// Resumes payment for an already-reserved (PENDING_PAYMENT) booking.
+  Future<CheckoutOutcome> resumePayment(Booking booking) => _startPayment(booking);
+
+  Future<CheckoutOutcome> _startPayment(Booking booking) async {
     try {
       final payment = await _booking.initiatePayment(booking.publicId);
       return PaymentReady(booking, payment);

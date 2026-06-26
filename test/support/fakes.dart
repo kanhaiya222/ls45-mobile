@@ -208,6 +208,30 @@ class FakeBookingRepository implements BookingRepository {
       currencyCode: 'INR',
     );
   }
+
+  List<Booking> bookings = const [];
+
+  @override
+  Future<PageResponse<Booking>> listMine({int page = 0}) async => PageResponse(
+        content: bookings,
+        page: 0,
+        size: 20,
+        totalElements: bookings.length,
+        totalPages: 1,
+        first: true,
+        last: true,
+      );
+
+  @override
+  Future<Booking> getByPublicId(String publicId) async => bookings.firstWhere(
+        (b) => b.publicId == publicId,
+        orElse: () => const Booking(
+          publicId: 'x',
+          bookingReference: 'X',
+          status: 'PENDING_PAYMENT',
+          occupancyType: 'SINGLE',
+        ),
+      );
 }
 
 /// Fake [TravellerRepository] that mints sequential ids for created travellers.
