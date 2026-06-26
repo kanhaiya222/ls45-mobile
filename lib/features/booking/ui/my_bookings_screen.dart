@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/network/api_exception.dart';
+import '../../auth/state/auth_controller.dart';
 import '../application/bookings_providers.dart';
 import '../models/booking_models.dart';
 
@@ -11,46 +12,64 @@ class MyBookingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final bookings = ref.watch(myBookingsProvider);
+    final signedIn = ref.watch(authControllerProvider).value != null;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Your bookings')),
-      body: bookings.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(e is ApiException ? e.message : 'Could not load your bookings.',
-                    textAlign: TextAlign.center),
-                const SizedBox(height: 12),
-                FilledButton(
-                  onPressed: () => ref.invalidate(myBookingsProvider),
-                  child: const Text('Retry'),
-                ),
-              ],
-            ),
+      body: signedIn ? _bookingsBody(context, ref) : _signInPrompt(context),
+    );
+  }
+
+  Widget _signInPrompt(BuildContext context) => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Sign in to see your bookings.', textAlign: TextAlign.center),
+              const SizedBox(height: 16),
+              FilledButton(onPressed: () => context.go('/login'), child: const Text('Sign in')),
+            ],
           ),
         ),
-        data: (list) => list.isEmpty
-            ? const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(24),
-                  child: Text('You have no bookings yet.', textAlign: TextAlign.center),
-                ),
-              )
-            : RefreshIndicator(
-                onRefresh: () async => ref.invalidate(myBookingsProvider),
-                child: ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: list.length,
-                  itemBuilder: (context, i) => _BookingCard(booking: list[i]),
-                ),
+      );
+
+  Widget _bookingsBody(BuildContext context, WidgetRef ref) {
+    return ref.watch(myBookingsProvider).when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, _) => Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(e is ApiException ? e.message : 'Could not load your bookings.',
+                      textAlign: TextAlign.center),
+                  const SizedBox(height: 12),
+                  FilledButton(
+                    onPressed: () => ref.invalidate(myBookingsProvider),
+                    child: const Text('Retry'),
+                  ),
+                ],
               ),
-      ),
-    );
+            ),
+          ),
+          data: (list) => list.isEmpty
+              ? const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(24),
+                    child: Text('You have no bookings yet.', textAlign: TextAlign.center),
+                  ),
+                )
+              : RefreshIndicator(
+                  onRefresh: () async => ref.invalidate(myBookingsProvider),
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: list.length,
+                    itemBuilder: (context, i) => _BookingCard(booking: list[i]),
+                  ),
+                ),
+        );
   }
 }
 
