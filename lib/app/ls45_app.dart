@@ -1,44 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'router.dart';
 
 /// Brand teal — matches the web/admin theme (#0F766E).
 const Color kBrandTeal = Color(0xFF0F766E);
 
-/// Root application widget. Routing (go_router) and the real screens are wired in later slices
-/// (M.4+); this scaffold establishes the app shell, theme, and a compiling entry point.
-class Ls45App extends StatelessWidget {
+/// Root application widget. Drives navigation via go_router (see [routerProvider]).
+class Ls45App extends ConsumerWidget {
   const Ls45App({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
+  Widget build(BuildContext context, WidgetRef ref) {
+    return MaterialApp.router(
       title: 'LS45 — Life Starts at 45',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: kBrandTeal),
         useMaterial3: true,
       ),
-      home: const HomePlaceholderScreen(),
-    );
-  }
-}
-
-/// Temporary landing screen until the catalog (M.5) replaces it.
-class HomePlaceholderScreen extends StatelessWidget {
-  const HomePlaceholderScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('LS45 Wellness Journeys')),
-      body: const Center(
-        child: Padding(
-          padding: EdgeInsets.all(24),
-          child: Text(
-            'Mobile app scaffold ready.\nCatalog, auth and booking arrive in the next slices.',
-            textAlign: TextAlign.center,
-          ),
-        ),
-      ),
+      routerConfig: ref.watch(routerProvider),
     );
   }
 }

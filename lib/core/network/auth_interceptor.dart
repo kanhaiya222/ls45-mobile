@@ -2,11 +2,14 @@ import 'package:dio/dio.dart';
 
 import '../storage/token_storage.dart';
 
-/// Auth endpoints that must NOT carry a Bearer token, and must not trigger refresh-on-401.
+/// Auth endpoints the interceptor must NOT touch: login/register/refresh carry no access token,
+/// and logout carries the refresh token in its own Authorization header. None should trigger
+/// refresh-on-401.
 const List<String> publicAuthPaths = <String>[
   '/auth/login',
   '/auth/register',
   '/auth/refresh',
+  '/auth/logout',
 ];
 
 bool isPublicAuthPath(String path) => publicAuthPaths.any(path.contains);

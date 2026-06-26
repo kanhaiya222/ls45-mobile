@@ -7,10 +7,11 @@ void main() {
     expect(bearerFor('/account/bookings', 'tok'), 'Bearer tok');
   });
 
-  test('bearerFor returns null for public auth paths', () {
+  test('bearerFor returns null for public auth paths (incl. logout)', () {
     expect(bearerFor('/auth/login', 'tok'), isNull);
     expect(bearerFor('/auth/register', 'tok'), isNull);
     expect(bearerFor('/auth/refresh', 'tok'), isNull);
+    expect(bearerFor('/auth/logout', 'tok'), isNull);
   });
 
   test('bearerFor returns null when there is no token', () {

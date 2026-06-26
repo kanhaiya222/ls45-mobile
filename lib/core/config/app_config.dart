@@ -19,4 +19,17 @@ class AppConfig {
     }
     return 'http://localhost:8080/api/v1';
   }
+
+  /// device_type sent on login — must be one of the backend enum (WEB/MOBILE_IOS/MOBILE_ANDROID/API).
+  static String get deviceType {
+    if (kIsWeb) return 'WEB';
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.iOS:
+        return 'MOBILE_IOS';
+      case TargetPlatform.android:
+        return 'MOBILE_ANDROID';
+      default:
+        return 'API';
+    }
+  }
 }

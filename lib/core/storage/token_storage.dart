@@ -10,6 +10,7 @@ class TokenStorage {
 
   static const _kAccess = 'ls45.accessToken';
   static const _kRefresh = 'ls45.refreshToken';
+  static const _kUser = 'ls45.user';
 
   Future<void> saveTokens({
     required String accessToken,
@@ -19,13 +20,27 @@ class TokenStorage {
     await _store.write(_kRefresh, refreshToken);
   }
 
+  /// Persists tokens plus the raw user JSON so the session can be restored on app restart.
+  Future<void> saveSession({
+    required String accessToken,
+    required String refreshToken,
+    required String userJson,
+  }) async {
+    await saveTokens(accessToken: accessToken, refreshToken: refreshToken);
+    await _store.write(_kUser, userJson);
+  }
+
   Future<String?> readAccessToken() => _store.read(_kAccess);
 
   Future<String?> readRefreshToken() => _store.read(_kRefresh);
 
+  /// The raw user JSON saved at login, or null when there is no session.
+  Future<String?> readUserJson() => _store.read(_kUser);
+
   Future<void> clear() async {
     await _store.delete(_kAccess);
     await _store.delete(_kRefresh);
+    await _store.delete(_kUser);
   }
 
   Future<bool> hasSession() async {
