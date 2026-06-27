@@ -1,16 +1,48 @@
-# ls45_mobile
+# LS45 — Mobile App
 
-A new Flutter project.
+Flutter customer app for **LS45** wellness travel, mirroring the web booking funnel: browse journeys,
+view a journey's detail (itinerary / departures / FAQs), start a booking, add travellers, and check
+out.
 
-## Getting Started
+## Stack
 
-This project is a starting point for a Flutter application.
+- **Flutter 3.32** / Dart 3.8
+- **riverpod** (state) · **go_router** (navigation) · **dio** (HTTP) · `flutter_secure_storage`
+- Feature-first structure; hand-written `fromJson` models (no codegen)
 
-A few resources to get you started if this is your first Flutter project:
+## Run
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+```bash
+flutter pub get
+flutter run                 # device / emulator
+flutter run -d chrome       # web (no device needed)
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+API base URL is resolved per platform in `AppConfig` (Android emulator → `http://10.0.2.2:8080/api/v1`;
+web/desktop → `http://localhost:8080/api/v1`). The backend must be running.
+
+## Verify
+
+```bash
+flutter analyze
+flutter test
+flutter build web           # build gate that needs no device
+```
+
+Android APK and iOS builds need the Android SDK / a macOS+Xcode toolchain respectively.
+
+## Structure
+
+```
+lib/
+  core/       AppConfig, dio + auth interceptor (refresh-on-401), token storage, theme
+  features/<feature>/
+    models/         data classes + fromJson
+    data/           repositories (dio)
+    application/    controllers (riverpod AsyncNotifier)
+    state/          providers
+    ui/             screens + widgets
+```
+
+Features: auth · catalog (search/paging) · package detail · booking start (occupancy + travellers) ·
+checkout (reserve + payment) · my bookings (+ resume payment) · profile, behind a bottom-nav shell.
