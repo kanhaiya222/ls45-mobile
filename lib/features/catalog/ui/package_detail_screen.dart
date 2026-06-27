@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/network/api_exception.dart';
+import '../../appconfig/data/app_config_repository.dart';
+import '../../appconfig/models/app_branding.dart';
 import '../models/catalog_models.dart';
 import '../state/package_detail_controller.dart';
 
@@ -70,8 +72,11 @@ class _DetailBody extends StatelessWidget {
               ),
               if (d.basePrice != null) ...[
                 const SizedBox(height: 8),
-                Text('from ₹${d.basePrice!.round()}',
-                    style: text.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                Consumer(builder: (context, ref, _) {
+                  final code = d.currencyCode ?? ref.watch(currentBrandingProvider).currencyCode;
+                  return Text('from ${currencySymbolFor(code)}${d.basePrice!.round()}',
+                      style: text.titleLarge?.copyWith(fontWeight: FontWeight.bold));
+                }),
               ],
               if (d.shortDescription != null) ...[
                 const SizedBox(height: 12),
@@ -204,8 +209,11 @@ class _Departures extends StatelessWidget {
               title: Text('${dep.startDate} – ${dep.endDate}'),
               subtitle: Text('${dep.status} · ${dep.availableSeats} seats left'),
               trailing: dep.priceFrom != null
-                  ? Text('from ₹${dep.priceFrom!.round()}',
-                      style: const TextStyle(fontWeight: FontWeight.bold))
+                  ? Consumer(builder: (context, ref, _) {
+                      final code = ref.watch(currentBrandingProvider).currencyCode;
+                      return Text('from ${currencySymbolFor(code)}${dep.priceFrom!.round()}',
+                          style: const TextStyle(fontWeight: FontWeight.bold));
+                    })
                   : null,
               // Only OPEN departures can be booked; others are display-only.
               onTap: dep.status == 'OPEN' ? () => context.push('/book/${dep.publicId}') : null,

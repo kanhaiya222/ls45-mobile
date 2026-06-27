@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 
-/// Brand teal — matches the web/admin palette (#0F766E).
+/// Brand teal — the shipped default seed; matches the web/admin palette (#0F766E). At runtime the
+/// app reseeds from the tenant's branding (GET /app/config) — see [buildLightTheme].
 const Color brandTeal = Color(0xFF0F766E);
 
-ThemeData _build(Brightness brightness) {
-  final scheme = ColorScheme.fromSeed(seedColor: brandTeal, brightness: brightness);
+ThemeData _build(Color seed, Brightness brightness) {
+  final scheme = ColorScheme.fromSeed(seedColor: seed, brightness: brightness);
   return ThemeData(
     colorScheme: scheme,
     useMaterial3: true,
@@ -31,5 +32,6 @@ ThemeData _build(Brightness brightness) {
   );
 }
 
-ThemeData get lightTheme => _build(Brightness.light);
-ThemeData get darkTheme => _build(Brightness.dark);
+/// Light/dark themes seeded from the tenant brand colour (defaults to [brandTeal]).
+ThemeData buildLightTheme([Color seed = brandTeal]) => _build(seed, Brightness.light);
+ThemeData buildDarkTheme([Color seed = brandTeal]) => _build(seed, Brightness.dark);

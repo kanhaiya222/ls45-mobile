@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/network/api_exception.dart';
+import '../../appconfig/data/app_config_repository.dart';
+import '../../appconfig/models/app_branding.dart';
 import '../../auth/state/auth_controller.dart';
 import '../application/bookings_providers.dart';
 import '../models/booking_models.dart';
@@ -84,10 +86,13 @@ class _BookingCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
         title: Text(booking.bookingReference),
-        subtitle: Text(
-          '${booking.occupancyType} · ${booking.numTravellers} traveller(s)'
-          '${booking.totalPrice != null ? ' · ₹${booking.totalPrice!.round()}' : ''}',
-        ),
+        subtitle: Consumer(builder: (context, ref, _) {
+          final code = booking.currencyCode ?? ref.watch(currentBrandingProvider).currencyCode;
+          return Text(
+            '${booking.occupancyType} · ${booking.numTravellers} traveller(s)'
+            '${booking.totalPrice != null ? ' · ${currencySymbolFor(code)}${booking.totalPrice!.round()}' : ''}',
+          );
+        }),
         trailing: Chip(label: Text(booking.status), visualDensity: VisualDensity.compact),
         onTap: () => context.push('/account/bookings/${booking.publicId}'),
       ),

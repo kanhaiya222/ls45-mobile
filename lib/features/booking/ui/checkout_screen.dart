@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/network/api_exception.dart';
+import '../../appconfig/models/app_branding.dart';
 import '../application/checkout_service.dart';
 import '../models/booking_models.dart';
 import '../payment/payment_launcher.dart';
@@ -121,7 +122,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: style),
-          Text('₹${amount.round()}', style: style),
+          Text('${currencySymbolFor(currency)}${amount.round()}', style: style),
         ],
       ),
     );

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/network/api_exception.dart';
+import '../../appconfig/data/app_config_repository.dart';
+import '../../appconfig/models/app_branding.dart';
 import '../application/bookings_providers.dart';
 import '../application/checkout_service.dart';
 import '../models/booking_models.dart';
@@ -65,7 +67,8 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
             _row('Occupancy', booking.occupancyType),
             _row('Travellers', '${booking.numTravellers}'),
             if (booking.totalPrice != null)
-              _row('Total', '₹${booking.totalPrice!.round()} ${booking.currencyCode ?? ''}'.trim()),
+              _row('Total',
+                  '${currencySymbolFor(booking.currencyCode ?? ref.watch(currentBrandingProvider).currencyCode)}${booking.totalPrice!.round()}'),
             if (booking.confirmedAt != null) _row('Confirmed', booking.confirmedAt!),
             if (booking.items.isNotEmpty) ...[
               const SizedBox(height: 16),
@@ -75,7 +78,10 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
                   dense: true,
                   contentPadding: EdgeInsets.zero,
                   title: Text(item.name),
-                  trailing: item.totalPrice != null ? Text('₹${item.totalPrice!.round()}') : null,
+                  trailing: item.totalPrice != null
+                      ? Text(
+                          '${currencySymbolFor(booking.currencyCode ?? ref.watch(currentBrandingProvider).currencyCode)}${item.totalPrice!.round()}')
+                      : null,
                 ),
             ],
             if (booking.isPendingPayment) ...[

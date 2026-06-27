@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/network/api_exception.dart';
+import '../../appconfig/data/app_config_repository.dart';
+import '../../appconfig/models/app_branding.dart';
 import '../../auth/state/auth_controller.dart';
 import '../models/catalog_models.dart';
 import '../state/packages_controller.dart';
@@ -164,11 +166,14 @@ class _PackageCard extends StatelessWidget {
                   ),
                   if (package.basePrice != null) ...[
                     const SizedBox(height: 8),
-                    Text('from ₹${package.basePrice!.round()}',
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleSmall
-                            ?.copyWith(fontWeight: FontWeight.bold)),
+                    Consumer(builder: (context, ref, _) {
+                      final code = package.currency ?? ref.watch(currentBrandingProvider).currencyCode;
+                      return Text('from ${currencySymbolFor(code)}${package.basePrice!.round()}',
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleSmall
+                              ?.copyWith(fontWeight: FontWeight.bold));
+                    }),
                   ],
                 ],
               ),
