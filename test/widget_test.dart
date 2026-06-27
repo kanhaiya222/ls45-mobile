@@ -20,6 +20,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('LS45 Wellness Journeys'), findsOneWidget);
+    // The branded hero header renders regardless of catalogue data.
+    expect(find.text('LS45 · WELLNESS'), findsOneWidget);
+    expect(find.text('Journeys for life\nafter 45'), findsOneWidget);
   });
 }

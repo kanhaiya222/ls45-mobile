@@ -10,6 +10,7 @@ import '../features/booking/ui/booking_detail_screen.dart';
 import '../features/booking/ui/booking_start_screen.dart';
 import '../features/booking/ui/checkout_screen.dart';
 import '../features/booking/ui/my_bookings_screen.dart';
+import '../features/catalog/models/catalog_models.dart';
 import '../features/catalog/ui/catalog_list_screen.dart';
 import '../features/catalog/ui/package_detail_screen.dart';
 import 'app_scaffold.dart';
@@ -57,7 +58,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/register', builder: (_, __) => const RegisterScreen()),
       GoRoute(
         path: '/packages/:slug',
-        builder: (_, state) => PackageDetailScreen(slug: state.pathParameters['slug']!),
+        builder: (_, state) => PackageDetailScreen(
+          slug: state.pathParameters['slug']!,
+          preview: state.extra is PackageSummary ? state.extra as PackageSummary : null,
+        ),
       ),
       GoRoute(
         path: '/book/:departureId',
