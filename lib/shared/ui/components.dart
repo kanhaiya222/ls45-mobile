@@ -16,7 +16,12 @@ class ConstrainedBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
+    // Align (not Center) with heightFactor:1 so this is safe as a direct child of a ListView/scroll
+    // view — it sizes its height to the child instead of trying to fill the unbounded scroll extent,
+    // while still capping width and centring horizontally.
+    return Align(
+      alignment: Alignment.topCenter,
+      heightFactor: 1,
       child: ConstrainedBox(
         constraints: BoxConstraints(maxWidth: maxWidth),
         child: child,
