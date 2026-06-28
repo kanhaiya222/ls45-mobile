@@ -13,15 +13,21 @@ void main() {
         overrides: [
           // No platform secure-storage and no network in the widget test.
           keyValueStoreProvider.overrideWithValue(InMemoryKeyValueStore()),
-          catalogRepositoryProvider.overrideWithValue(FakeCatalogRepository()),
+          catalogRepositoryProvider.overrideWithValue(
+            FakeCatalogRepository(all: [fakePackage('Himalayan Retreat'), fakePackage('Goa Escape')]),
+          ),
         ],
         child: const Ls45App(),
       ),
     );
     await tester.pumpAndSettle();
 
-    // The branded hero header renders regardless of catalogue data.
+    // No layout/runtime exception while the header, search sliver and cards lay out together.
+    expect(tester.takeException(), isNull);
+    // The branded hero header renders regardless of catalogue data...
     expect(find.text('LS45 · WELLNESS'), findsOneWidget);
     expect(find.text('Journeys for life\nafter 45'), findsOneWidget);
+    // ...and the loaded journeys render as cards.
+    expect(find.text('Himalayan Retreat'), findsOneWidget);
   });
 }

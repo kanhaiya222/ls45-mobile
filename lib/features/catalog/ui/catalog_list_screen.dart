@@ -157,7 +157,9 @@ class _SearchBarDelegate extends SliverPersistentHeaderDelegate {
   final TextEditingController controller;
   final ValueChanged<String> onSubmit;
 
-  static const double _height = 74;
+  // Generous fixed extent; the child fills it exactly (SizedBox.expand) so the declared extent always
+  // matches what paints — otherwise the sliver throws "layoutExtent exceeds paintExtent".
+  static const double _height = 80;
 
   @override
   double get minExtent => _height;
@@ -166,27 +168,32 @@ class _SearchBarDelegate extends SliverPersistentHeaderDelegate {
 
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return Container(
-      color: Theme.of(context).scaffoldBackgroundColor,
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
-      child: TextField(
-        controller: controller,
-        textInputAction: TextInputAction.search,
-        decoration: InputDecoration(
-          hintText: 'Search journeys, places, themes…',
-          prefixIcon: const Icon(Icons.search_rounded),
-          suffixIcon: controller.text.isEmpty
-              ? null
-              : IconButton(
-                  icon: const Icon(Icons.close_rounded, size: 20),
-                  onPressed: () {
-                    controller.clear();
-                    onSubmit('');
-                  },
-                ),
+    return SizedBox.expand(
+      child: ColoredBox(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Center(
+            child: TextField(
+              controller: controller,
+              textInputAction: TextInputAction.search,
+              decoration: InputDecoration(
+                hintText: 'Search journeys, places, themes…',
+                prefixIcon: const Icon(Icons.search_rounded),
+                suffixIcon: controller.text.isEmpty
+                    ? null
+                    : IconButton(
+                        icon: const Icon(Icons.close_rounded, size: 20),
+                        onPressed: () {
+                          controller.clear();
+                          onSubmit('');
+                        },
+                      ),
+              ),
+              onSubmitted: onSubmit,
+            ),
+          ),
         ),
-        onChanged: (_) {},
-        onSubmitted: onSubmit,
       ),
     );
   }
