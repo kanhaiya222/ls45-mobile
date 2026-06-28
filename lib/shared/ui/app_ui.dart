@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
+export 'components.dart';
+
 /// Shared visual language for the app — corner radii, soft shadows, entrance motion, shimmer
 /// skeletons, fading network images, and small labelled chips / section headers. Pure Flutter (no
-/// third-party packages) so it stays robust offline and on web.
+/// third-party packages) so it stays robust offline and on web. Higher-level building blocks
+/// (PrimaryButton, StateView, StatusPill, SectionCard, …) live in components.dart and are re-exported.
 
 const double kRadiusLg = 22;
 const double kRadiusMd = 14;

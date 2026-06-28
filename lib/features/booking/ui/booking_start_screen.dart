@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/network/api_exception.dart';
+import '../../../shared/ui/app_ui.dart';
 import '../application/booking_starter.dart';
 import '../models/booking_models.dart';
 
@@ -51,6 +52,7 @@ class _BookingStartScreenState extends ConsumerState<BookingStartScreen> {
   }
 
   Future<void> _submit() async {
+    FocusScope.of(context).unfocus();
     if (!_formKey.currentState!.validate()) return;
     setState(() {
       _submitting = true;
@@ -82,55 +84,67 @@ class _BookingStartScreenState extends ConsumerState<BookingStartScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Start booking')),
+      appBar: AppBar(title: const Text('Travellers & rooming')),
       body: SafeArea(
         child: Form(
           key: _formKey,
           child: ListView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
             children: [
-              Text('Occupancy', style: Theme.of(context).textTheme.titleMedium),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                children: [
-                  for (final o in OccupancyType.values)
-                    ChoiceChip(
-                      label: Text(o.label),
-                      selected: _occupancy == o,
-                      onSelected: (_) => setState(() => _occupancy = o),
+              ConstrainedBody(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SectionCard(
+                      title: 'Room type',
+                      child: Column(
+                        children: [
+                          for (final o in OccupancyType.values)
+                            _OccupancyOption(
+                              label: o.label,
+                              selected: _occupancy == o,
+                              onTap: _submitting ? null : () => setState(() => _occupancy = o),
+                            ),
+                        ],
+                      ),
                     ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  Text('Travellers', style: Theme.of(context).textTheme.titleMedium),
-                  const Spacer(),
-                  TextButton.icon(
-                    onPressed: _submitting ? null : _addTraveller,
-                    icon: const Icon(Icons.add),
-                    label: const Text('Add'),
-                  ),
-                ],
-              ),
-              for (var i = 0; i < _travellers.length; i++) _travellerCard(i),
-              const SizedBox(height: 16),
-              if (_error != null)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Text(_error!,
-                      style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Text("Who's travelling",
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                        const Spacer(),
+                        Text('${_travellers.length}',
+                            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    for (var i = 0; i < _travellers.length; i++) ...[
+                      _travellerCard(i),
+                      const SizedBox(height: 12),
+                    ],
+                    OutlinedButton.icon(
+                      onPressed: _submitting ? null : _addTraveller,
+                      icon: const Icon(Icons.person_add_alt_1_rounded),
+                      label: const Text('Add another traveller'),
+                    ),
+                    if (_error != null) ...[
+                      const SizedBox(height: 16),
+                      AppBanner(message: _error!),
+                    ],
+                  ],
                 ),
-              FilledButton(
-                onPressed: _submitting ? null : _submit,
-                child: _submitting
-                    ? const SizedBox(
-                        height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                    : const Text('Continue to checkout'),
               ),
             ],
           ),
+        ),
+      ),
+      bottomNavigationBar: BottomBar(
+        child: PrimaryButton(
+          label: 'Continue to checkout',
+          icon: Icons.arrow_forward_rounded,
+          busy: _submitting,
+          onPressed: _submit,
         ),
       ),
     );
@@ -138,45 +152,112 @@ class _BookingStartScreenState extends ConsumerState<BookingStartScreen> {
 
   Widget _travellerCard(int index) {
     final c = _travellers[index];
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          children: [
-            Row(
+    return SectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 14,
+                backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
+                child: Text('${index + 1}',
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13)),
+              ),
+              const SizedBox(width: 10),
+              Text('Traveller ${index + 1}',
+                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+              const Spacer(),
+              if (_travellers.length > 1)
+                IconButton(
+                  tooltip: 'Remove',
+                  visualDensity: VisualDensity.compact,
+                  icon: const Icon(Icons.close_rounded, size: 20),
+                  onPressed: _submitting ? null : () => _removeTraveller(index),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: TextFormField(
+                  controller: c.firstName,
+                  textCapitalization: TextCapitalization.words,
+                  decoration: const InputDecoration(labelText: 'First name'),
+                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: TextFormField(
+                  controller: c.lastName,
+                  textCapitalization: TextCapitalization.words,
+                  decoration: const InputDecoration(labelText: 'Last name'),
+                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: c.email,
+            keyboardType: TextInputType.emailAddress,
+            decoration: const InputDecoration(labelText: 'Email (optional)'),
+            validator: (v) =>
+                (v != null && v.isNotEmpty && !v.contains('@')) ? 'Enter a valid email' : null,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OccupancyOption extends StatelessWidget {
+  const _OccupancyOption({required this.label, required this.selected, required this.onTap});
+
+  final String label;
+  final bool selected;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Material(
+        color: selected ? scheme.primary.withValues(alpha: 0.06) : Colors.transparent,
+        borderRadius: BorderRadius.circular(kRadiusMd),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(kRadiusMd),
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(kRadiusMd),
+              border: Border.all(
+                color: selected ? scheme.primary : scheme.outlineVariant,
+                width: selected ? 1.6 : 1,
+              ),
+            ),
+            child: Row(
               children: [
-                Text('Traveller ${index + 1}',
-                    style: Theme.of(context).textTheme.labelLarge),
-                const Spacer(),
-                if (_travellers.length > 1)
-                  IconButton(
-                    tooltip: 'Remove',
-                    icon: const Icon(Icons.close, size: 20),
-                    onPressed: _submitting ? null : () => _removeTraveller(index),
-                  ),
+                Icon(
+                  selected ? Icons.radio_button_checked_rounded : Icons.radio_button_unchecked_rounded,
+                  color: selected ? scheme.primary : scheme.outline,
+                  size: 22,
+                ),
+                const SizedBox(width: 12),
+                Text(label,
+                    style: TextStyle(
+                        fontSize: 15, fontWeight: selected ? FontWeight.w700 : FontWeight.w500)),
               ],
             ),
-            TextFormField(
-              controller: c.firstName,
-              decoration: const InputDecoration(labelText: 'First name'),
-              validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
-            ),
-            const SizedBox(height: 8),
-            TextFormField(
-              controller: c.lastName,
-              decoration: const InputDecoration(labelText: 'Last name'),
-              validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
-            ),
-            const SizedBox(height: 8),
-            TextFormField(
-              controller: c.email,
-              keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(labelText: 'Email (optional)'),
-              validator: (v) =>
-                  (v != null && v.isNotEmpty && !v.contains('@')) ? 'Enter a valid email' : null,
-            ),
-          ],
+          ),
         ),
       ),
     );

@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/network/api_exception.dart';
+import '../../../shared/ui/app_ui.dart';
+import 'auth_header.dart';
 import '../state/auth_controller.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
@@ -18,6 +20,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _lastName = TextEditingController();
   final _email = TextEditingController();
   final _password = TextEditingController();
+  bool _obscure = true;
 
   @override
   void dispose() {
@@ -29,6 +32,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   }
 
   Future<void> _submit() async {
+    FocusScope.of(context).unfocus();
     if (!_formKey.currentState!.validate()) return;
     await ref.read(authControllerProvider.notifier).register(
           email: _email.text.trim(),
@@ -44,66 +48,95 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final busy = auth.isLoading;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Create account')),
+      appBar: AppBar(backgroundColor: Colors.transparent),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                TextFormField(
-                  controller: _firstName,
-                  decoration: const InputDecoration(labelText: 'First name'),
-                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _lastName,
-                  decoration: const InputDecoration(labelText: 'Last name'),
-                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _email,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(labelText: 'Email'),
-                  validator: (v) =>
-                      (v == null || !v.contains('@')) ? 'Enter a valid email' : null,
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _password,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Password',
-                    helperText: 'At least 8 characters',
+          padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
+          child: ConstrainedBody(
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const AuthHeader(
+                    title: 'Create your account',
+                    subtitle: 'Join LS45 to book small-group wellness journeys with fixed departures.',
                   ),
-                  validator: (v) =>
-                      (v == null || v.length < 8) ? 'At least 8 characters' : null,
-                ),
-                const SizedBox(height: 24),
-                if (auth.hasError)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: Text(
-                      _errorText(auth.error!),
-                      style: TextStyle(color: Theme.of(context).colorScheme.error),
+                  const SizedBox(height: 28),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: _firstName,
+                          textInputAction: TextInputAction.next,
+                          textCapitalization: TextCapitalization.words,
+                          decoration: const InputDecoration(labelText: 'First name'),
+                          validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextFormField(
+                          controller: _lastName,
+                          textInputAction: TextInputAction.next,
+                          textCapitalization: TextCapitalization.words,
+                          decoration: const InputDecoration(labelText: 'Last name'),
+                          validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _email,
+                    keyboardType: TextInputType.emailAddress,
+                    textInputAction: TextInputAction.next,
+                    autofillHints: const [AutofillHints.email],
+                    decoration: const InputDecoration(
+                      labelText: 'Email',
+                      prefixIcon: Icon(Icons.mail_outline_rounded),
                     ),
+                    validator: (v) => (v == null || !v.contains('@')) ? 'Enter a valid email' : null,
                   ),
-                FilledButton(
-                  onPressed: busy ? null : _submit,
-                  child: busy
-                      ? const SizedBox(
-                          height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                      : const Text('Create account'),
-                ),
-                TextButton(
-                  onPressed: busy ? null : () => context.go('/login'),
-                  child: const Text('Already have an account? Sign in'),
-                ),
-              ],
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _password,
+                    obscureText: _obscure,
+                    textInputAction: TextInputAction.done,
+                    onFieldSubmitted: (_) => busy ? null : _submit(),
+                    decoration: InputDecoration(
+                      labelText: 'Password',
+                      helperText: 'At least 8 characters',
+                      prefixIcon: const Icon(Icons.lock_outline_rounded),
+                      suffixIcon: IconButton(
+                        tooltip: _obscure ? 'Show password' : 'Hide password',
+                        icon: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined),
+                        onPressed: () => setState(() => _obscure = !_obscure),
+                      ),
+                    ),
+                    validator: (v) => (v == null || v.length < 8) ? 'At least 8 characters' : null,
+                  ),
+                  const SizedBox(height: 24),
+                  if (auth.hasError) ...[
+                    AppBanner(message: _errorText(auth.error!)),
+                    const SizedBox(height: 16),
+                  ],
+                  PrimaryButton(label: 'Create account', busy: busy, onPressed: _submit),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('Already have an account?',
+                          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                      TextButton(
+                        onPressed: busy ? null : () => context.go('/login'),
+                        child: const Text('Sign in'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),
