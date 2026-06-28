@@ -30,6 +30,15 @@ abstract interface class ShopRepository {
   Future<Wishlist> removeFromWishlist(String itemPublicId);
   Future<List<CollectionSummary>> collections();
   Future<CollectionDetail> collection(String slug);
+
+  Future<List<Shipment>> orderShipments(String orderPublicId);
+  Future<List<TrackingEvent>> orderTracking(String orderPublicId);
+  Future<List<ReturnRequest>> orderReturns(String orderPublicId);
+  Future<ReturnRequest> createReturn(
+    String orderPublicId,
+    String? reason,
+    List<Map<String, dynamic>> items,
+  );
 }
 
 class HttpShopRepository implements ShopRepository {
@@ -167,6 +176,38 @@ class HttpShopRepository implements ShopRepository {
   Future<CollectionDetail> collection(String slug) => _guard(() async {
         final res = await _dio.get<Map<String, dynamic>>('/product-collections/$slug');
         return unwrap(res.data, (d) => CollectionDetail.fromJson((d as Map).cast<String, dynamic>()));
+      });
+
+  @override
+  Future<List<Shipment>> orderShipments(String orderPublicId) => _guard(() async {
+        final res = await _dio.get<Map<String, dynamic>>('/me/orders/$orderPublicId/shipments');
+        return unwrap(res.data, (d) => _list(d, Shipment.fromJson));
+      });
+
+  @override
+  Future<List<TrackingEvent>> orderTracking(String orderPublicId) => _guard(() async {
+        final res = await _dio.get<Map<String, dynamic>>('/me/orders/$orderPublicId/tracking');
+        return unwrap(res.data, (d) => _list(d, TrackingEvent.fromJson));
+      });
+
+  @override
+  Future<List<ReturnRequest>> orderReturns(String orderPublicId) => _guard(() async {
+        final res = await _dio.get<Map<String, dynamic>>('/me/orders/$orderPublicId/returns');
+        return unwrap(res.data, (d) => _list(d, ReturnRequest.fromJson));
+      });
+
+  @override
+  Future<ReturnRequest> createReturn(
+    String orderPublicId,
+    String? reason,
+    List<Map<String, dynamic>> items,
+  ) =>
+      _guard(() async {
+        final res = await _dio.post<Map<String, dynamic>>('/me/orders/$orderPublicId/returns', data: {
+          if (reason != null && reason.isNotEmpty) 'reason': reason,
+          'items': items,
+        });
+        return unwrap(res.data, (d) => ReturnRequest.fromJson((d as Map).cast<String, dynamic>()));
       });
 
   Future<T> _guard<T>(Future<T> Function() run) async {

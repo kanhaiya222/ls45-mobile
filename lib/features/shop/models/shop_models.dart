@@ -452,6 +452,57 @@ class CollectionDetail {
       );
 }
 
+/// Mirrors ShipmentResponse (GET /me/orders/{id}/shipments).
+class Shipment {
+  const Shipment({required this.publicId, required this.status, this.carrier, this.trackingNumber});
+
+  final String publicId;
+  final String status;
+  final String? carrier;
+  final String? trackingNumber;
+
+  factory Shipment.fromJson(Map<String, dynamic> json) => Shipment(
+        publicId: asString(json['publicId']),
+        status: asString(json['status']),
+        carrier: asStringOrNull(json['carrier']),
+        trackingNumber: asStringOrNull(json['trackingNumber']),
+      );
+}
+
+/// Mirrors TrackingEventResponse (GET /me/orders/{id}/tracking).
+class TrackingEvent {
+  const TrackingEvent({required this.status, this.location, this.description, this.occurredAt});
+
+  final String status;
+  final String? location;
+  final String? description;
+  final String? occurredAt;
+
+  factory TrackingEvent.fromJson(Map<String, dynamic> json) => TrackingEvent(
+        status: asString(json['status']),
+        location: asStringOrNull(json['location']),
+        description: asStringOrNull(json['description']),
+        occurredAt: asStringOrNull(json['occurredAt']),
+      );
+}
+
+/// Mirrors ReturnResponse (GET /me/orders/{id}/returns).
+class ReturnRequest {
+  const ReturnRequest({required this.publicId, required this.status, this.reason, this.refundAmount});
+
+  final String publicId;
+  final String status;
+  final String? reason;
+  final double? refundAmount;
+
+  factory ReturnRequest.fromJson(Map<String, dynamic> json) => ReturnRequest(
+        publicId: asString(json['publicId']),
+        status: asString(json['status']),
+        reason: asStringOrNull(json['reason']),
+        refundAmount: asDoubleOrNull(json['refundAmount']),
+      );
+}
+
 /// Checkout request body (POST /api/v1/me/checkout).
 class CheckoutRequest {
   const CheckoutRequest({

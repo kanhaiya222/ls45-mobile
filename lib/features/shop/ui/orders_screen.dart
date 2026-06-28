@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/network/api_exception.dart';
 import '../../appconfig/data/app_config_repository.dart';
 import '../data/shop_repository.dart';
 import '../models/shop_models.dart';
@@ -130,6 +131,7 @@ class _OrderDetailSheet extends ConsumerWidget {
               Text('${o.shipName}, ${o.shipCity ?? ''}'),
               if (o.shippingMethodName != null) Text('via ${o.shippingMethodName}', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
             ],
+            _PostPurchase(order: o, code: code),
           ],
         ),
       ),
@@ -150,6 +152,15 @@ class _OrderDetailSheet extends ConsumerWidget {
 
 final _orderDetailProvider = FutureProvider.autoDispose.family<Order, String>(
   (ref, id) => ref.watch(shopRepositoryProvider).getOrder(id),
+);
+final _orderShipmentsProvider = FutureProvider.autoDispose.family<List<Shipment>, String>(
+  (ref, id) => ref.watch(shopRepositoryProvider).orderShipments(id),
+);
+final _orderTrackingProvider = FutureProvider.autoDispose.family<List<TrackingEvent>, String>(
+  (ref, id) => ref.watch(shopRepositoryProvider).orderTracking(id),
+);
+final _orderReturnsProvider = FutureProvider.autoDispose.family<List<ReturnRequest>, String>(
+  (ref, id) => ref.watch(shopRepositoryProvider).orderReturns(id),
 );
 
 class _StatusChip extends StatelessWidget {
@@ -197,5 +208,160 @@ class _Empty extends StatelessWidget {
         ],
       ],
     );
+  }
+}
+
+/// Post-purchase block on the order sheet: shipments, tracking, returns + request-a-return.
+class _PostPurchase extends ConsumerWidget {
+  const _PostPurchase({required this.order, required this.code});
+
+  final Order order;
+  final String code;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final scheme = Theme.of(context).colorScheme;
+    final shipments = ref.watch(_orderShipmentsProvider(order.publicId)).value ?? const [];
+    final tracking = ref.watch(_orderTrackingProvider(order.publicId)).value ?? const [];
+    final returns = ref.watch(_orderReturnsProvider(order.publicId)).value ?? const [];
+    final canReturn = order.status == 'DELIVERED' || order.status == 'SHIPPED';
+
+    Widget label(String t) => Padding(
+          padding: const EdgeInsets.only(top: 18, bottom: 4),
+          child: Text(t, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: scheme.onSurfaceVariant)),
+        );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (shipments.isNotEmpty) ...[
+          label('Shipments'),
+          ...shipments.map((s) => Text(
+                '${s.status}${s.carrier != null ? ' · ${s.carrier}' : ''}'
+                '${s.trackingNumber != null ? ' · ${s.trackingNumber}' : ''}',
+                style: const TextStyle(fontSize: 13.5),
+              )),
+        ],
+        if (tracking.isNotEmpty) ...[
+          label('Tracking'),
+          ...tracking.map((t) => Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Text('• ${t.status}${t.description != null ? ' — ${t.description}' : ''}',
+                    style: const TextStyle(fontSize: 13)),
+              )),
+        ],
+        if (returns.isNotEmpty) ...[
+          label('Returns'),
+          ...returns.map((r) => Text(
+                '${r.status}${r.reason != null ? ' — ${r.reason}' : ''}',
+                style: const TextStyle(fontSize: 13.5),
+              )),
+        ],
+        if (canReturn) ...[
+          const SizedBox(height: 16),
+          OutlinedButton.icon(
+            onPressed: () => _openReturn(context, ref),
+            icon: const Icon(Icons.assignment_return_outlined, size: 18),
+            label: const Text('Request a return'),
+          ),
+        ],
+      ],
+    );
+  }
+
+  void _openReturn(BuildContext context, WidgetRef ref) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (_) => _RequestReturnSheet(order: order),
+    ).then((_) => ref.invalidate(_orderReturnsProvider(order.publicId)));
+  }
+}
+
+class _RequestReturnSheet extends ConsumerStatefulWidget {
+  const _RequestReturnSheet({required this.order});
+  final Order order;
+
+  @override
+  ConsumerState<_RequestReturnSheet> createState() => _RequestReturnSheetState();
+}
+
+class _RequestReturnSheetState extends ConsumerState<_RequestReturnSheet> {
+  final Map<String, int> _qty = {};
+  final _reason = TextEditingController();
+  bool _saving = false;
+
+  @override
+  void dispose() {
+    _reason.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(20, 4, 20, MediaQuery.of(context).viewInsets.bottom + 24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Request a return', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 8),
+          ...widget.order.items.map((it) {
+            final q = _qty[it.publicId] ?? 0;
+            return Row(
+              children: [
+                Expanded(child: Text('${it.name}  (of ${it.quantity})')),
+                IconButton(
+                  onPressed: q > 0 ? () => setState(() => _qty[it.publicId] = q - 1) : null,
+                  icon: const Icon(Icons.remove_circle_outline),
+                ),
+                Text('$q', style: const TextStyle(fontWeight: FontWeight.w700)),
+                IconButton(
+                  onPressed: q < it.quantity ? () => setState(() => _qty[it.publicId] = q + 1) : null,
+                  icon: const Icon(Icons.add_circle_outline),
+                ),
+              ],
+            );
+          }),
+          const SizedBox(height: 8),
+          TextField(controller: _reason, decoration: const InputDecoration(labelText: 'Reason (optional)')),
+          const SizedBox(height: 16),
+          FilledButton(
+            onPressed: _saving ? null : _submit,
+            style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+            child: Text(_saving ? 'Submitting…' : 'Submit return'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _submit() async {
+    final items = _qty.entries
+        .where((e) => e.value > 0)
+        .map((e) => {'orderItemPublicId': e.key, 'quantity': e.value, 'restock': true})
+        .toList();
+    if (items.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Choose at least one item.')));
+      return;
+    }
+    setState(() => _saving = true);
+    try {
+      await ref
+          .read(shopRepositoryProvider)
+          .createReturn(widget.order.publicId, _reason.text.trim(), items);
+      if (!mounted) return;
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Return requested — we\'ll review it shortly.')),
+      );
+    } on ApiException catch (e) {
+      if (mounted) {
+        setState(() => _saving = false);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+      }
+    }
   }
 }
