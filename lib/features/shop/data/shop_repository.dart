@@ -22,6 +22,14 @@ abstract interface class ShopRepository {
 
   /// Initiate gateway payment. Throws ApiException(errorCode: PAYMENT_NOT_CONFIGURED) when off.
   Future<void> initiatePayment(String orderPublicId);
+
+  Future<ReviewSummary> reviews(String slug);
+  Future<void> submitReview(String productPublicId, int rating, String? title, String? body);
+  Future<Wishlist> wishlist();
+  Future<Wishlist> addToWishlist(String variantPublicId);
+  Future<Wishlist> removeFromWishlist(String itemPublicId);
+  Future<List<CollectionSummary>> collections();
+  Future<CollectionDetail> collection(String slug);
 }
 
 class HttpShopRepository implements ShopRepository {
@@ -108,6 +116,57 @@ class HttpShopRepository implements ShopRepository {
   @override
   Future<void> initiatePayment(String orderPublicId) => _guard(() async {
         await _dio.post<Map<String, dynamic>>('/me/orders/$orderPublicId/payments/initiate');
+      });
+
+  @override
+  Future<ReviewSummary> reviews(String slug) => _guard(() async {
+        final res = await _dio.get<Map<String, dynamic>>('/products/$slug/reviews');
+        return unwrap(res.data, (d) => ReviewSummary.fromJson((d as Map).cast<String, dynamic>()));
+      });
+
+  @override
+  Future<void> submitReview(String productPublicId, int rating, String? title, String? body) =>
+      _guard(() async {
+        await _dio.post<Map<String, dynamic>>('/me/reviews', data: {
+          'productPublicId': productPublicId,
+          'rating': rating,
+          if (title != null && title.isNotEmpty) 'title': title,
+          if (body != null && body.isNotEmpty) 'body': body,
+        });
+      });
+
+  @override
+  Future<Wishlist> wishlist() => _guard(() async {
+        final res = await _dio.get<Map<String, dynamic>>('/me/wishlist');
+        return unwrap(res.data, (d) => Wishlist.fromJson((d as Map).cast<String, dynamic>()));
+      });
+
+  @override
+  Future<Wishlist> addToWishlist(String variantPublicId) => _guard(() async {
+        final res = await _dio.post<Map<String, dynamic>>('/me/wishlist/items',
+            data: {'variantPublicId': variantPublicId});
+        return unwrap(res.data, (d) => Wishlist.fromJson((d as Map).cast<String, dynamic>()));
+      });
+
+  @override
+  Future<Wishlist> removeFromWishlist(String itemPublicId) => _guard(() async {
+        final res = await _dio.delete<Map<String, dynamic>>('/me/wishlist/items/$itemPublicId');
+        return unwrap(res.data, (d) => Wishlist.fromJson((d as Map).cast<String, dynamic>()));
+      });
+
+  @override
+  Future<List<CollectionSummary>> collections() => _guard(() async {
+        final res = await _dio.get<Map<String, dynamic>>('/product-collections');
+        return unwrap(
+          res.data,
+          (d) => PageResponse.fromJson((d as Map).cast<String, dynamic>(), CollectionSummary.fromJson).content,
+        );
+      });
+
+  @override
+  Future<CollectionDetail> collection(String slug) => _guard(() async {
+        final res = await _dio.get<Map<String, dynamic>>('/product-collections/$slug');
+        return unwrap(res.data, (d) => CollectionDetail.fromJson((d as Map).cast<String, dynamic>()));
       });
 
   Future<T> _guard<T>(Future<T> Function() run) async {

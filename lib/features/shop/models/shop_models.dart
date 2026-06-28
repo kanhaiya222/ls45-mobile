@@ -336,6 +336,122 @@ class Order {
       );
 }
 
+/// Mirrors ReviewResponse.
+class Review {
+  const Review({required this.publicId, required this.rating, this.title, this.body, this.status});
+
+  final String publicId;
+  final int rating;
+  final String? title;
+  final String? body;
+  final String? status;
+
+  factory Review.fromJson(Map<String, dynamic> json) => Review(
+        publicId: asString(json['publicId']),
+        rating: asInt(json['rating']),
+        title: asStringOrNull(json['title']),
+        body: asStringOrNull(json['body']),
+        status: asStringOrNull(json['status']),
+      );
+}
+
+/// Mirrors ReviewSummaryResponse (GET /products/{slug}/reviews).
+class ReviewSummary {
+  const ReviewSummary({this.averageRating = 0, this.totalReviews = 0, this.reviews = const []});
+
+  final double averageRating;
+  final int totalReviews;
+  final List<Review> reviews;
+
+  factory ReviewSummary.fromJson(Map<String, dynamic> json) => ReviewSummary(
+        averageRating: asDoubleOrNull(json['averageRating']) ?? 0,
+        totalReviews: asInt(json['totalReviews']),
+        reviews: asModelList(json['reviews'], Review.fromJson),
+      );
+}
+
+/// Mirrors WishlistItemResponse.
+class WishlistItem {
+  const WishlistItem({
+    required this.publicId,
+    required this.variantPublicId,
+    required this.variantName,
+    this.unitPrice,
+  });
+
+  final String publicId;
+  final String variantPublicId;
+  final String variantName;
+  final double? unitPrice;
+
+  factory WishlistItem.fromJson(Map<String, dynamic> json) => WishlistItem(
+        publicId: asString(json['publicId']),
+        variantPublicId: asString(json['variantPublicId']),
+        variantName: asString(json['variantName']),
+        unitPrice: asDoubleOrNull(json['unitPrice']),
+      );
+}
+
+/// Mirrors WishlistResponse (GET /me/wishlist).
+class Wishlist {
+  const Wishlist({required this.publicId, this.itemCount = 0, this.items = const []});
+
+  final String publicId;
+  final int itemCount;
+  final List<WishlistItem> items;
+
+  factory Wishlist.fromJson(Map<String, dynamic> json) => Wishlist(
+        publicId: asString(json['publicId']),
+        itemCount: asInt(json['itemCount']),
+        items: asModelList(json['items'], WishlistItem.fromJson),
+      );
+}
+
+/// Mirrors CollectionListResponse (GET /product-collections).
+class CollectionSummary {
+  const CollectionSummary({required this.publicId, required this.name, required this.slug, this.thumbnailUrl});
+
+  final String publicId;
+  final String name;
+  final String slug;
+  final String? thumbnailUrl;
+
+  factory CollectionSummary.fromJson(Map<String, dynamic> json) => CollectionSummary(
+        publicId: asString(json['publicId']),
+        name: asString(json['name']),
+        slug: asString(json['slug']),
+        thumbnailUrl: asStringOrNull(json['thumbnailUrl']),
+      );
+}
+
+/// Mirrors CollectionDetailResponse (GET /product-collections/{slug}).
+class CollectionDetail {
+  const CollectionDetail({
+    required this.publicId,
+    required this.name,
+    required this.slug,
+    this.description,
+    this.heroImageUrl,
+    this.products = const [],
+  });
+
+  final String publicId;
+  final String name;
+  final String slug;
+  final String? description;
+  final String? heroImageUrl;
+  final List<ProductSummary> products;
+
+  factory CollectionDetail.fromJson(Map<String, dynamic> json) => CollectionDetail(
+        publicId: asString(json['publicId']),
+        name: asString(json['name']),
+        slug: asString(json['slug']),
+        description: asStringOrNull(json['description']),
+        heroImageUrl: asStringOrNull(json['heroImageUrl']),
+        products: asModelList(json['products'], ProductSummary.fromJson),
+      );
+}
+
 /// Checkout request body (POST /api/v1/me/checkout).
 class CheckoutRequest {
   const CheckoutRequest({

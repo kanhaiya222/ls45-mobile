@@ -24,6 +24,11 @@ class ShopListScreen extends ConsumerWidget {
         title: const Text('Shop'),
         actions: [
           IconButton(
+            tooltip: 'Wishlist',
+            onPressed: () => context.push('/shop/wishlist'),
+            icon: const Icon(Icons.favorite_border_rounded),
+          ),
+          IconButton(
             tooltip: 'Cart',
             onPressed: () => context.push('/shop/cart'),
             icon: Badge(
@@ -44,8 +49,45 @@ class ShopListScreen extends ConsumerWidget {
           ),
           data: (items) => items.isEmpty
               ? const _ShopEmpty()
-              : _ProductGrid(items: items),
+              : Column(
+                  children: [
+                    const _CollectionsRail(),
+                    Expanded(child: _ProductGrid(items: items)),
+                  ],
+                ),
         ),
+      ),
+    );
+  }
+}
+
+/// Horizontal "shop by collection" rail; hidden when there are no collections.
+class _CollectionsRail extends ConsumerWidget {
+  const _CollectionsRail();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final collections = ref.watch(collectionsProvider).value ?? const [];
+    if (collections.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    final scheme = Theme.of(context).colorScheme;
+    return SizedBox(
+      height: 48,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        itemCount: collections.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (_, i) {
+          final c = collections[i];
+          return ActionChip(
+            label: Text(c.name),
+            backgroundColor: scheme.surface,
+            side: BorderSide(color: scheme.outlineVariant),
+            onPressed: () => context.push('/shop/collections/${c.slug}'),
+          );
+        },
       ),
     );
   }

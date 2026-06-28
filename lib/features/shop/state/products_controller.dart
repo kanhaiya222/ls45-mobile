@@ -45,3 +45,18 @@ final productsControllerProvider =
 final productDetailProvider = FutureProvider.autoDispose.family<ProductDetail, String>(
   (ref, slug) => ref.watch(shopRepositoryProvider).productBySlug(slug),
 );
+
+/// Public review summary for a product (by slug).
+final productReviewsProvider = FutureProvider.autoDispose.family<ReviewSummary, String>(
+  (ref, slug) => ref.watch(shopRepositoryProvider).reviews(slug),
+);
+
+/// Published Shop collections (the "shop by collection" rail).
+final collectionsProvider = FutureProvider.autoDispose<List<CollectionSummary>>(
+  (ref) => ref.watch(shopRepositoryProvider).collections(),
+);
+
+/// A single collection's detail (by slug).
+final collectionProvider = FutureProvider.autoDispose.family<CollectionDetail, String>(
+  (ref, slug) => ref.watch(shopRepositoryProvider).collection(slug),
+);
