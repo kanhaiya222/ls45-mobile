@@ -139,6 +139,7 @@ class PackageDetail {
     this.exclusions,
     this.highlights,
     this.media = const [],
+    this.taggedProducts = const [],
   });
 
   final String publicId;
@@ -164,6 +165,9 @@ class PackageDetail {
   final List<String>? highlights;
   final List<PackageMedia> media;
 
+  /// "Shop this journey" — commerce products cross-sold on this package's detail page.
+  final List<TaggedProduct> taggedProducts;
+
   factory PackageDetail.fromJson(Map<String, dynamic> json) => PackageDetail(
         publicId: asString(json['publicId']),
         name: asString(json['name']),
@@ -187,6 +191,41 @@ class PackageDetail {
         exclusions: asStringListOrNull(json['exclusions']),
         highlights: asStringListOrNull(json['highlights']),
         media: asModelList(json['media'], PackageMedia.fromJson),
+        taggedProducts: asModelList(json['taggedProducts'], TaggedProduct.fromJson),
+      );
+}
+
+/// Mirrors TaggedProductResponse — a Shop product surfaced on a package detail page.
+class TaggedProduct {
+  const TaggedProduct({
+    required this.publicId,
+    required this.name,
+    this.slug,
+    this.shortDescription,
+    this.heroImageUrl,
+    this.thumbnailUrl,
+    this.basePrice,
+    this.currencyCode,
+  });
+
+  final String publicId;
+  final String name;
+  final String? slug;
+  final String? shortDescription;
+  final String? heroImageUrl;
+  final String? thumbnailUrl;
+  final double? basePrice;
+  final String? currencyCode;
+
+  factory TaggedProduct.fromJson(Map<String, dynamic> json) => TaggedProduct(
+        publicId: asString(json['publicId']),
+        name: asString(json['name']),
+        slug: asStringOrNull(json['slug']),
+        shortDescription: asStringOrNull(json['shortDescription']),
+        heroImageUrl: asStringOrNull(json['heroImageUrl']),
+        thumbnailUrl: asStringOrNull(json['thumbnailUrl']),
+        basePrice: asDoubleOrNull(json['basePrice']),
+        currencyCode: asStringOrNull(json['currencyCode']),
       );
 }
 

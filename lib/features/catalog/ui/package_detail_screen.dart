@@ -182,7 +182,94 @@ class _DetailBody extends StatelessWidget {
           KeyedSubtree(key: departuresKey, child: _Departures(departures: bundle.departures)),
           _ItineraryView(itinerary: bundle.itinerary),
           _Faqs(faqs: bundle.faqs),
+          _ShopThisJourney(products: d.taggedProducts),
         ],
+      ),
+    );
+  }
+}
+
+/// "Shop this journey" — commerce products tagged to this package, cross-sold here.
+class _ShopThisJourney extends ConsumerWidget {
+  const _ShopThisJourney({required this.products});
+
+  final List<TaggedProduct> products;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (products.isEmpty) return const SizedBox.shrink();
+    final code = ref.watch(currentBrandingProvider).currencyCode;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SectionHeader('Shop this journey', icon: Icons.shopping_bag_outlined),
+        SizedBox(
+          height: 198,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            itemCount: products.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 12),
+            itemBuilder: (_, i) => _TaggedProductCard(product: products[i], code: code),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _TaggedProductCard extends StatelessWidget {
+  const _TaggedProductCard({required this.product, required this.code});
+
+  final TaggedProduct product;
+  final String code;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final price = product.basePrice;
+    return SizedBox(
+      width: 150,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: scheme.surface,
+          borderRadius: BorderRadius.circular(kRadiusMd),
+          boxShadow: softShadow(context),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(kRadiusMd),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: product.slug == null ? null : () => context.push('/shop/${product.slug}'),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AspectRatio(
+                    aspectRatio: 1.2,
+                    child: NetworkImageFade(url: product.thumbnailUrl ?? product.heroImageUrl),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(product.name,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, height: 1.2)),
+                        const SizedBox(height: 4),
+                        if (price != null)
+                          Text('${currencySymbolFor(code)}${price.round()}',
+                              style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800, color: scheme.primary)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

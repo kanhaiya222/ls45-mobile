@@ -13,6 +13,11 @@ import '../features/booking/ui/my_bookings_screen.dart';
 import '../features/catalog/models/catalog_models.dart';
 import '../features/catalog/ui/catalog_list_screen.dart';
 import '../features/catalog/ui/package_detail_screen.dart';
+import '../features/shop/ui/cart_screen.dart';
+import '../features/shop/ui/orders_screen.dart';
+import '../features/shop/ui/product_detail_screen.dart';
+import '../features/shop/ui/shop_checkout_screen.dart';
+import '../features/shop/ui/shop_list_screen.dart';
 import 'app_scaffold.dart';
 
 /// App router. A bottom-nav shell hosts Explore / Bookings / Profile; auth, detail, booking and
@@ -33,7 +38,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       final atAuthScreen = loc == '/login' || loc == '/register';
       final protected = loc.startsWith('/book') ||
           loc.startsWith('/checkout') ||
-          loc.startsWith('/account/bookings/');
+          loc.startsWith('/account/bookings/') ||
+          loc == '/account/orders' ||
+          loc == '/shop/cart' ||
+          loc == '/shop/checkout';
       if (loggedIn && atAuthScreen) return '/';
       if (!loggedIn && protected) return '/login';
       return null;
@@ -47,6 +55,9 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [GoRoute(path: '/', builder: (_, __) => const CatalogListScreen())],
           ),
           StatefulShellBranch(
+            routes: [GoRoute(path: '/shop', builder: (_, __) => const ShopListScreen())],
+          ),
+          StatefulShellBranch(
             routes: [GoRoute(path: '/account/bookings', builder: (_, __) => const MyBookingsScreen())],
           ),
           StatefulShellBranch(
@@ -56,6 +67,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
       GoRoute(path: '/register', builder: (_, __) => const RegisterScreen()),
+      // Shop push routes — cart/checkout declared before :slug so they aren't taken as a slug.
+      GoRoute(path: '/shop/cart', builder: (_, __) => const CartScreen()),
+      GoRoute(path: '/shop/checkout', builder: (_, __) => const ShopCheckoutScreen()),
+      GoRoute(path: '/account/orders', builder: (_, __) => const OrdersScreen()),
+      GoRoute(
+        path: '/shop/:slug',
+        builder: (_, state) => ProductDetailScreen(slug: state.pathParameters['slug']!),
+      ),
       GoRoute(
         path: '/packages/:slug',
         builder: (_, state) => PackageDetailScreen(
