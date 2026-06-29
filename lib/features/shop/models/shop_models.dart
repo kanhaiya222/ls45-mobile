@@ -159,6 +159,9 @@ class CartItem {
     required this.quantity,
     required this.unitPrice,
     required this.lineTotal,
+    this.productName,
+    this.productSlug,
+    this.imageUrl,
   });
 
   final String publicId;
@@ -167,6 +170,9 @@ class CartItem {
   final int quantity;
   final double unitPrice;
   final double lineTotal;
+  final String? productName;
+  final String? productSlug;
+  final String? imageUrl;
 
   factory CartItem.fromJson(Map<String, dynamic> json) => CartItem(
         publicId: asString(json['publicId']),
@@ -175,6 +181,9 @@ class CartItem {
         quantity: asInt(json['quantity']),
         unitPrice: asDoubleOrNull(json['unitPrice']) ?? 0,
         lineTotal: asDoubleOrNull(json['lineTotal']) ?? 0,
+        productName: asStringOrNull(json['productName']),
+        productSlug: asStringOrNull(json['productSlug']),
+        imageUrl: asStringOrNull(json['imageUrl']),
       );
 }
 
@@ -377,18 +386,27 @@ class WishlistItem {
     required this.variantPublicId,
     required this.variantName,
     this.unitPrice,
+    this.productName,
+    this.productSlug,
+    this.imageUrl,
   });
 
   final String publicId;
   final String variantPublicId;
   final String variantName;
   final double? unitPrice;
+  final String? productName;
+  final String? productSlug;
+  final String? imageUrl;
 
   factory WishlistItem.fromJson(Map<String, dynamic> json) => WishlistItem(
         publicId: asString(json['publicId']),
         variantPublicId: asString(json['variantPublicId']),
         variantName: asString(json['variantName']),
         unitPrice: asDoubleOrNull(json['unitPrice']),
+        productName: asStringOrNull(json['productName']),
+        productSlug: asStringOrNull(json['productSlug']),
+        imageUrl: asStringOrNull(json['imageUrl']),
       );
 }
 

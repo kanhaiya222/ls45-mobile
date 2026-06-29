@@ -76,13 +76,21 @@ class _CartLineState extends ConsumerState<_CartLine> {
   Widget build(BuildContext context) {
     final it = widget.item;
     final scheme = Theme.of(context).colorScheme;
+    final title = (it.productName != null && it.productName!.isNotEmpty) ? it.productName! : it.variantName;
+    final hasVariant = it.productName != null && it.variantName.isNotEmpty && it.variantName != it.productName;
     return Row(
       children: [
+        _thumb(scheme),
+        const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(it.variantName, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+              Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+              if (hasVariant) ...[
+                const SizedBox(height: 2),
+                Text(it.variantName, style: TextStyle(fontSize: 12.5, color: scheme.onSurfaceVariant)),
+              ],
               const SizedBox(height: 2),
               Text('${formatMoney(it.unitPrice, widget.code)} each',
                   style: TextStyle(fontSize: 12.5, color: scheme.onSurfaceVariant)),
@@ -114,6 +122,29 @@ class _CartLineState extends ConsumerState<_CartLine> {
       ],
     );
   }
+
+  Widget _thumb(ColorScheme scheme) {
+    final url = widget.item.imageUrl;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: SizedBox(
+        width: 56,
+        height: 56,
+        child: (url != null && url.isNotEmpty)
+            ? Image.network(
+                url,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => _thumbPlaceholder(scheme),
+              )
+            : _thumbPlaceholder(scheme),
+      ),
+    );
+  }
+
+  Widget _thumbPlaceholder(ColorScheme scheme) => Container(
+        color: scheme.primary.withValues(alpha: 0.10),
+        child: Icon(Icons.shopping_bag_outlined, color: scheme.primary.withValues(alpha: 0.7)),
+      );
 
   Widget _miniBtn(IconData icon, VoidCallback? onTap) {
     return InkWell(
