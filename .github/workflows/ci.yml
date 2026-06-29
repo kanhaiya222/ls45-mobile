@@ -1,0 +1,29 @@
+name: CI
+
+# Runs in the mirrored ls45-mobile repo, where the Flutter project is at the repo root.
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+jobs:
+  analyze-test:
+    name: Mobile Analyze, Test & Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.32.4'
+          channel: 'stable'
+          cache: true
+      - name: Install dependencies
+        run: flutter pub get
+      - name: Static analysis
+        run: flutter analyze
+      - name: Unit tests
+        run: flutter test
+      # Web is the buildable target in CI (Android/iOS device builds need their SDKs).
+      - name: Build web
+        run: flutter build web
