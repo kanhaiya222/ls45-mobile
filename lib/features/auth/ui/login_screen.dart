@@ -93,7 +93,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text('New to LS45?', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                      Text('New to TheSalori?', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
                       TextButton(
                         onPressed: busy ? null : () => context.go('/register'),
                         child: const Text('Create an account'),

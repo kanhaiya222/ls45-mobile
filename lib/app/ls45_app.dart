@@ -15,7 +15,7 @@ class Ls45App extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final brand = ref.watch(currentBrandingProvider);
     return MaterialApp.router(
-      title: 'LS45 — Life Starts at 45',
+      title: 'TheSalori — Wellness journeys for life',
       debugShowCheckedModeBanner: false,
       theme: buildLightTheme(brand.primaryColor),
       darkTheme: buildDarkTheme(brand.primaryColor),

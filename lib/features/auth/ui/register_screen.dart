@@ -60,7 +60,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 children: [
                   const AuthHeader(
                     title: 'Create your account',
-                    subtitle: 'Join LS45 to book small-group wellness journeys with fixed departures.',
+                    subtitle: 'Join TheSalori to book small-group wellness journeys with fixed departures.',
                   ),
                   const SizedBox(height: 28),
                   Row(

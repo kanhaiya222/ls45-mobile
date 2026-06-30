@@ -19,7 +19,7 @@ class AppBranding {
 
   /// Shipped defaults — used until /app/config resolves and if the call ever fails.
   static const AppBranding fallback = AppBranding(
-    siteName: 'LS45',
+    siteName: 'TheSalori',
     primaryColor: Color(0xFF0F766E),
     accentColor: Color(0xFFF97316),
     currencyCode: 'INR',

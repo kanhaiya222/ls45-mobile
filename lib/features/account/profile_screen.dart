@@ -132,7 +132,7 @@ class _SignedIn extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 24),
-              Text('LS45 · v1.0.0',
+              Text('TheSalori · v1.0.0',
                   style: TextStyle(color: scheme.onSurfaceVariant.withValues(alpha: 0.7), fontSize: 12)),
             ],
           ),

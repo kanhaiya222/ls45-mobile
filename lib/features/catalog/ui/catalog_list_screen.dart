@@ -107,7 +107,7 @@ class _HeroHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'LS45 · WELLNESS',
+                  'THESALORI · WELLNESS',
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.85),
                     fontSize: 12,
